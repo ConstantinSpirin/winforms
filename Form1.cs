@@ -13,8 +13,6 @@ namespace lab3
 {
     public partial class Form1 : Form
     {
-        List<Page> pages = new List<Page>();
-
         public Form1()
         {
             InitializeComponent();
@@ -23,44 +21,20 @@ namespace lab3
 
         private void menuItemCreate_Click(object sender, EventArgs e)
         {
-            TabPage tabPage = new TabPage("*new");
-            RichTextBox richTextBox = new RichTextBox();
-            Page page = new Page(tabPage, richTextBox);
-
-            richTextBox.TextChanged += new EventHandler(richTextBox_TextChanged);
-
-            richTextBox.Dock = DockStyle.Fill;
-            pages.Add(page);
+            EditorTabPage tabPage = new EditorTabPage();
+            tabPage.TextBox.TextChanged += new EventHandler(richTextBox_TextChanged);
             tabControl.SelectedTab = tabPage;
             tabControl.TabPages.Add(tabPage);
-            tabPage.Controls.Add(richTextBox);
         }
 
         private void menuItemOpen_Click(object sender, EventArgs e)
         {
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
-                string filename = openFileDialog.FileName;
-                TabPage tabPage = new TabPage(Path.GetFileName(filename));
-                RichTextBox richTextBox = new RichTextBox();
-                Page page = new Page(tabPage, richTextBox);
-                page.Saved = true;
-                page.PrimarySaved = true;
-                page.TextBox = richTextBox;
-                page.Tab = tabPage;
-                page.FilePath = filename;
-
-                string content = System.IO.File.ReadAllText(filename);
-
-                richTextBox.Text = content;
-
-                richTextBox.TextChanged += new EventHandler(richTextBox_TextChanged);
-
-                richTextBox.Dock = DockStyle.Fill;
-                pages.Add(page);
+                EditorTabPage tabPage = new EditorTabPage(openFileDialog.FileName);
+                tabPage.TextBox.TextChanged += new EventHandler(richTextBox_TextChanged);
                 tabControl.SelectedTab = tabPage;
                 tabControl.TabPages.Add(tabPage);
-                tabPage.Controls.Add(richTextBox);
             }
         }
 
@@ -105,70 +79,83 @@ namespace lab3
 
         private void richTextBox_TextChanged(object sender, EventArgs e)
         {
-            int index = tabControl.SelectedIndex;
-            if (pages[index].Saved)
+            EditorTabPage selectedTab = (EditorTabPage)tabControl.SelectedTab;
+            if (selectedTab.Saved)
             {
-                RichTextBox textBox = (RichTextBox)sender;
-                pages[index].Tab.Text = "* " + pages[index].Tab.Text;
-                pages[index].Saved = false;
+                selectedTab.Text = "* " + selectedTab.Text;
+                selectedTab.Saved = false;
             }
         }
 
         private void closeTabPageContextMenuItem_Click(object sender, EventArgs e)
         {
-            TabPage selectedTab = tabControl.SelectedTab;
-            int index = tabControl.SelectedIndex;
-            if (pages[index].Saved)
+            EditorTabPage selectedTab = (EditorTabPage)tabControl.SelectedTab;
+            if (selectedTab.Saved)
             {
                 tabControl.TabPages.Remove(selectedTab);
             }
             else
             {
-                var confirmResult = MessageBox.Show("Сохранить файл перед закрытием?", "Предупреждение", MessageBoxButtons.YesNo);
-                if (confirmResult == DialogResult.Yes)
+                var confirmResult = MessageBox.Show("Сохранить файл " + selectedTab.FilePath + " перед закрытием?", "Предупреждение", MessageBoxButtons.YesNoCancel);
+                switch (confirmResult)
                 {
-                    menuItemSave_Click(null, null);
+                    case DialogResult.Yes:
+                        if (Save(selectedTab))
+                        {
+                            tabControl.TabPages.Remove(selectedTab);
+                        }
+                        break;
+                    case DialogResult.No:
+                        tabControl.TabPages.Remove(selectedTab);
+                        break;
+                    default:
+                        break;
                 }
-                tabControl.TabPages.Remove(selectedTab);
             }
-            
         }
 
         private void menuItemSave_Click(object sender, EventArgs e)
         {
-            int index = tabControl.SelectedIndex;
-            Page page = pages[index];
-            if (page.PrimarySaved)
+            EditorTabPage selectedTab = (EditorTabPage)tabControl.SelectedTab;
+            if (Save(selectedTab))
             {
-                string filename = page.FilePath;
-                string content = page.TextBox.Text;
-                System.IO.File.WriteAllText(filename, content);
-                page.Saved = true;
-                page.Tab.Text = Path.GetFileName(filename);
                 statusLabel.Text = "Файл сохранен";
-            }
-            else
-            {
-                menuItemSaveAs_Click(sender, e);
             }
         }
 
         private void menuItemSaveAs_Click(object sender, EventArgs e)
         {
+            EditorTabPage selectedTab = (EditorTabPage)tabControl.SelectedTab;
+            if (SaveAs(selectedTab))
+            {
+                statusLabel.Text = "Файл сохранен";
+            }
+        }
+
+        private bool Save(EditorTabPage tabPage)
+        {
+            if (tabPage.PrimarySaved)
+            {
+                tabPage.SaveFile();
+                statusLabel.Text = "Файл сохранен";
+                return true;
+            }
+            else
+            {
+                return SaveAs(tabPage);
+            }
+        }
+
+        private bool SaveAs(EditorTabPage tabPage)
+        {
             saveFileDialog.Filter = "Текстовые документы (*.txt)|*.txt";
             if (saveFileDialog.ShowDialog() == DialogResult.OK)
             {
-                int index = tabControl.SelectedIndex;
-                Page page = pages[index];
-                string filename = saveFileDialog.FileName;
-                page.FilePath = filename;
-                string content = page.TextBox.Text;
-                System.IO.File.WriteAllText(filename, content);
-                page.Tab.Text = Path.GetFileName(filename);
-                page.Saved = true;
-                page.PrimarySaved = true;
-                page.FilePath = filename;
-                statusLabel.Text = "Файл сохранен";
+                tabPage.SaveFile(saveFileDialog.FileName);
+                return true;
+            } else
+            {
+                return false;
             }
         }
 
@@ -176,9 +163,8 @@ namespace lab3
         {
             if (fontDialog.ShowDialog() == DialogResult.OK)
             {
-                int index = tabControl.SelectedIndex;
-                Page page = pages[index];
-                page.TextBox.SelectionFont = fontDialog.Font;
+                EditorTabPage selectedTab = (EditorTabPage)tabControl.SelectedTab;
+                selectedTab.TextBox.SelectionFont = fontDialog.Font;
             }
         }
     }
