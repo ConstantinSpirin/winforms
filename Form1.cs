@@ -148,7 +148,12 @@ namespace lab3
 
         private bool SaveAs(EditorTabPage tabPage)
         {
-            saveFileDialog.Filter = "Текстовые документы (*.txt)|*.txt";
+            saveFileDialog.Filter = "Текстовые документы (*.txt)|*.txt | Текст RTF (*.rtf)|*.rtf";
+            tabPage.TextType = RichTextBoxStreamType.PlainText;
+            if (saveFileDialog.FilterIndex == 1) 
+            {
+                tabPage.TextType = RichTextBoxStreamType.RichText;
+            }
             if (saveFileDialog.ShowDialog() == DialogResult.OK)
             {
                 tabPage.SaveFile(saveFileDialog.FileName);

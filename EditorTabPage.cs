@@ -14,6 +14,7 @@ namespace lab3
         public bool PrimarySaved { get; private set; }
         public bool Saved { get; set; }
         public RichTextBox TextBox { get; private set; }
+        public RichTextBoxStreamType TextType { get; set; }
 
         private void InitializeTextBox()
         {
@@ -42,7 +43,7 @@ namespace lab3
 
         public void SaveFile()
         {
-            System.IO.File.WriteAllText(this.FilePath, this.TextBox.Text);
+            TextBox.SaveFile(this.FilePath, TextType);
             Saved = true;
             Text = Path.GetFileName(FilePath);
         }
