@@ -163,8 +163,9 @@
             // menuItemCopy
             // 
             this.menuItemCopy.Name = "menuItemCopy";
-            this.menuItemCopy.Size = new System.Drawing.Size(139, 22);
+            this.menuItemCopy.Size = new System.Drawing.Size(152, 22);
             this.menuItemCopy.Text = "Копировать";
+            this.menuItemCopy.Click += new System.EventHandler(this.menuItemCopy_Click);
             // 
             // menuItemCut
             // 

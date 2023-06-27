@@ -208,5 +208,12 @@ namespace lab3
             }
             Close();
         }
+
+        private void menuItemCopy_Click(object sender, EventArgs e)
+        {
+            EditorTabPage selectedTab = (EditorTabPage)tabControl.SelectedTab;
+            string text = selectedTab.TextBox.SelectedText;
+            Clipboard.SetText(text, TextDataFormat.Text);
+        }
     }
 }
