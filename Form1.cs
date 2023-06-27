@@ -167,5 +167,41 @@ namespace lab3
                 selectedTab.TextBox.SelectionFont = fontDialog.Font;
             }
         }
+
+        private void menuItemExit_Click(object sender, EventArgs e)
+        {
+            for(int i = tabControl.TabCount - 1; i >= 0; i--)
+            {
+                tabControl.SelectedIndex = i;
+                EditorTabPage tabPage = (EditorTabPage)tabControl.SelectedTab;
+                if (tabPage.Saved)
+                {
+                    tabControl.TabPages.Remove(tabPage);
+                }
+                else
+                {
+                    var confirmResult = MessageBox.Show("Сохранить файл " + tabPage.FilePath + " перед закрытием?", "Предупреждение", MessageBoxButtons.YesNoCancel);
+                    switch (confirmResult)
+                    {
+                        case DialogResult.Yes:
+                            if (Save(tabPage))
+                            {
+                                tabControl.TabPages.Remove(tabPage);
+                            }
+                            else
+                            {
+                                return;
+                            }
+                            break;
+                        case DialogResult.No:
+                            tabControl.TabPages.Remove(tabPage);
+                            break;
+                        default:
+                            return;
+                    }
+                }
+            }
+            Close();
+        }
     }
 }

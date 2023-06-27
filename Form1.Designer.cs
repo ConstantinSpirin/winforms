@@ -148,6 +148,7 @@
             this.menuItemExit.Name = "menuItemExit";
             this.menuItemExit.Size = new System.Drawing.Size(163, 22);
             this.menuItemExit.Text = "Выход";
+            this.menuItemExit.Click += new System.EventHandler(this.menuItemExit_Click);
             // 
             // menuItemEdit
             // 
